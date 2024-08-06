@@ -8,41 +8,104 @@ import {
   Connection,
   Controls,
   Edge,
-  EdgeChange, EdgeLabelRenderer, EdgeText, getStraightPath, GetStraightPathParams,
-  Handle, MarkerType,
+  EdgeChange, EdgeLabelRenderer, EdgeText, getStraightPath,
+  Handle, MarkerType, MiniMap,
   Node,
   NodeChange, Panel,
   Position,
   ReactFlow, useReactFlow,
 } from '@xyflow/react';
-import {useDebounce, useDebouncedCallback} from "use-debounce";
+import {useDebouncedCallback} from "use-debounce";
 
 const initialNodes: Node[] = [];
 
 const initialEdges: Edge[] = [];
+const Circle = ({id, data}: any) => {
+  const {updateNode } = useReactFlow()
+  const [text, setText] = useState('');
+  console.debug('data',data)
 
-const Circle = () => {
+  const debounced = useDebouncedCallback<(value: string) => void>((value) => {
+    updateNode(id, {
+      data: { label: value }
+    })
+  }, 1000)
+
+  const handleChangeLabel = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setText(e.target.value)
+    debounced(e.target.value)
+  }
+
   return <div className="circle">
-    <Handle type="target" position={Position.Top} />
-    <Handle type="source" position={Position.Bottom} />
+    {/*<NodeResizer*/}
+    {/*  color="#ff0071"*/}
+    {/*  isVisible={selected}*/}
+    {/*  minWidth={100}*/}
+    {/*  minHeight={30}*/}
+    {/*/>*/}
+    <Handle type="target" position={Position.Top}/>
+    <textarea value={text} onChange={handleChangeLabel} className="nondrag"/>
+    <Handle type="source" position={Position.Bottom}/>
   </div>
 }
 
-const Diamond = () => {
-  return <div className="diamond">
+const Diamond = ({id, data}: any) => {
+  const {updateNode } = useReactFlow()
+  const [text, setText] = useState('');
+  console.debug('data',data)
+
+  const debounced = useDebouncedCallback<(value: string) => void>((value) => {
+    updateNode(id, {
+      data: { label: value }
+    })
+  }, 1000)
+
+  const handleChangeLabel = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setText(e.target.value)
+    debounced(e.target.value)
+  }
+
+  return <div className="diamond-container">
+    <section className="diamond">
+      <section className="diamond-border"></section>
+    </section>
+    {/*<NodeResizer*/}
+    {/*  color="#ff0071"*/}
+    {/*  isVisible={selected}*/}
+    {/*  minWidth={100}*/}
+    {/*  minHeight={30}*/}
+    {/*/>*/}
     <Handle type="source" position={Position.Bottom}/>
-    <svg xmlns="http://www.w3.org/2000/svg" fill="#000000" className="bi bi-diamond" viewBox="0 0 16 16"
-         id="Diamond--Streamline-Bootstrap" height={16} width={16}>
-      <desc>{"Diamond Streamline Icon: https://streamlinehq.com"}</desc>
-      <path
-        d="M6.95 0.435c0.58 -0.58 1.52 -0.58 2.1 0l6.515 6.516c0.58 0.58 0.58 1.519 0 2.098L9.05 15.565c-0.58 0.58 -1.519 0.58 -2.098 0L0.435 9.05a1.48 1.48 0 0 1 0 -2.098zm1.4 0.7a0.495 0.495 0 0 0 -0.7 0L1.134 7.65a0.495 0.495 0 0 0 0 0.7l6.516 6.516a0.495 0.495 0 0 0 0.7 0l6.516 -6.516a0.495 0.495 0 0 0 0 -0.7L8.35 1.134z"
-        strokeWidth={1}/>
-    </svg>
+
+    <textarea value={text} onChange={handleChangeLabel} className="nondrag" />
     <Handle type="target" position={Position.Top}/>
   </div>
 }
 
-const TextEdge = ({ sourceX, sourceY, targetX, targetY, id, data, selected }: GetStraightPathParams & {id: string, data: Record<string, any>, selected: boolean}) => {
+const Square = ({id, data}: any) => {
+  const {updateNode } = useReactFlow()
+  const [text, setText] = useState('');
+  console.debug('data',data)
+
+  const debounced = useDebouncedCallback<(value: string) => void>((value) => {
+    updateNode(id, {
+      data: { label: value }
+    })
+  }, 1000)
+
+  const handleChangeLabel = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setText(e.target.value)
+    debounced(e.target.value)
+  }
+
+  return <div className="square">
+    <Handle type="target" position={Position.Top} />
+    <textarea value={text} onChange={handleChangeLabel} className="nondrag" />
+    <Handle type="source" position={Position.Bottom} />
+  </div>
+}
+
+const TextEdge = ({ id, sourceX, sourceY, targetX, targetY, data, selected }: any) => {
   const { updateEdge } = useReactFlow();
   const [edgePath, labelX, labelY] = getStraightPath({
     sourceX,
@@ -74,9 +137,9 @@ const TextEdge = ({ sourceX, sourceY, targetX, targetY, id, data, selected }: Ge
       x={labelX}
       y={labelY}
       label={text}
-      labelStyle={{fill: 'white'}}
+      labelStyle={{fill: 'black'}}
       labelShowBg
-      labelBgStyle={{fill: 'red'}}
+      labelBgStyle={{fill: 'white'}}
       labelBgPadding={[2, 4]}
       labelBgBorderRadius={2}
     />
@@ -93,7 +156,7 @@ function Flow() {
   const [nodes, setNodes] = useState<Node[]>(initialNodes);
   const [edges, setEdges] = useState(initialEdges);
 
-  const nodeTypes = useMemo(() => ({circle: Circle, diamond: Diamond}), [])
+  const nodeTypes = useMemo(() => ({circle: Circle, diamond: Diamond, square: Square}), [])
   const edgeTypes = useMemo(() => ({ text: TextEdge }), [])
 
   const exportFlowChart = () => {
@@ -123,7 +186,7 @@ function Flow() {
       id: generateShapeId(prev),
       style: { color: '#000' },
       data: {  },
-      position: { x: 150, y: 100 },
+      position: { x: 0, y: 0 },
       type: 'diamond'
     }]))
   }
@@ -133,7 +196,7 @@ function Flow() {
       id: generateShapeId(prev),
       style: { color: '#000' },
       data: { label: 'circle' },
-      position: { x: 150, y: 100 },
+      position: { x: 0, y: 0 },
       type: 'circle'
     }]))
   }
@@ -143,7 +206,8 @@ function Flow() {
       id: generateShapeId(prev),
       style: { color: '#000' },
       data: { },
-      position: { x: 150, y: 100 },
+      position: { x: 0, y: 0 },
+      type: 'square'
     }]))
   }
 
@@ -186,7 +250,8 @@ function Flow() {
         fitView
       >
         <Background variant={BackgroundVariant.Lines} />
-        <Controls />
+        <Controls style={{ color: '#000' }} />
+        <MiniMap />
 
         <Panel>
           <button className="export-btn" onClick={exportFlowChart}>
